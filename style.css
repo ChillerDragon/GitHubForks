@@ -1,0 +1,9 @@
+#main {
+    border: 1px solid rgb(136, 136, 136);
+    border-radius: 3px;
+}
+
+.sym {
+    background-color: rgb(247, 247, 247);
+    border-right: 1px solid black;
+}
