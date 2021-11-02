@@ -34,6 +34,7 @@ const getBranchHtml = (branch) => {
 
 const network = document.querySelector('.network')
 const repos = network.querySelectorAll('.repo')
+const rootRepo = network.querySelector('.repo')
 const sortedRepos = []
 let finishSort = false
 let numFetched = 0
@@ -41,6 +42,7 @@ let lastSort = null
 
 const sortRepos = () => {
   network.innerHTML = ''
+  network.insertAdjacentElement('beforeend', rootRepo)
   sortedRepos.sort((r1, r2) => r2[0] - r1[0])
   sortedRepos.forEach((repo) => {
     network.insertAdjacentElement('beforeend', repo[1])
