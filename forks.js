@@ -29,17 +29,33 @@ const isGithubNetworkPage = () => {
 const getBranchHtml = (branch) => {
   const behind = branch.match(/^This branch is (\d+) commits? behind/)
   if (behind) {
-    return `<span style="color: red">-${behind[1]}</span>`
+    const minus = parseInt(behind[1], 10)
+    return {
+      minus: minus,
+      plus: 0,
+      html: `<span style="color: red">-${minus}</span>`
+    }
   }
   const ahead = branch.match(/This branch is (\d+) commits? ahead of/)
   if (ahead) {
-    return `<span style="color: green">+${ahead[1]}</span>`
+    const plus = parseInt(ahead[1], 10)
+    return {
+      minus: 0,
+      plus: plus,
+      html: `<span style="color: green">+${plus}</span>`
+    }
   }
   const behindAhead = branch.match(/^This branch is (\d+) commits? ahead, (\d+) commits? behind/)
   if (behindAhead) {
-    return `<span style="color: green">+${behindAhead[1]}</span> <span style="color: red">-${behindAhead[2]}</span>`
+    const minus = parseInt(behindAhead[2], 10)
+    const plus = parseInt(behindAhead[1], 10)
+    return {
+      minus: minus,
+      plus: plus,
+      html: `<span style="color: green">+${plus}</span> <span style="color: red">-${minus}</span>`
+    }
   }
-  return ''
+  return { minus: 0, plus: 0, html: '' }
 }
 
 const network = document.querySelector('.network')
@@ -70,11 +86,21 @@ const sortRepos = () => {
       /* should be afterend imo but it does not work */
       val.parent.insertAdjacentElement('beforeend', child[1])
     })
-    sortedRepos.push([val.stars, val.parent])
+    sortedRepos.push({
+      stars: val.stars,
+      branchMinus: val.branchMinus,
+      branchPlus: val.branchPlus,
+      parent: val.parent
+    })
   })
-  sortedRepos.sort((r1, r2) => r2[0] - r1[0])
+  sortedRepos.sort((r1, r2) => {
+    if (r2.stars === r1.stars) {
+      return r2.branchPlus - r1.branchPlus
+    }
+    return r2.stars - r1.stars
+  })
   sortedRepos.forEach((repo) => {
-    network.insertAdjacentElement('beforeend', repo[1])
+    network.insertAdjacentElement('beforeend', repo.parent)
   })
 }
 
@@ -112,7 +138,7 @@ const processRepo = (parentId, repo, isParent) => {
       }
       const stars = parseInt(doc.querySelectorAll('.social-count')[2].innerText, 10)
       const branch = branchDom.innerText.trim()
-      const branchStr = getBranchHtml(branch)
+      const branchData = getBranchHtml(branch)
       // github style stars (looks ugly tho)
       /*
       const starsHtml = `
@@ -132,13 +158,15 @@ const processRepo = (parentId, repo, isParent) => {
       </svg>
       `
       const starsHtml = `<span>(${stars} ${svgStar})</span>`
-      aNode.insertAdjacentHTML('afterend', ` <span>${branchStr} ${starsHtml}</span>`)
+      aNode.insertAdjacentHTML('afterend', ` <span>${branchData.html} ${starsHtml}</span>`)
       // sortedRepos.push([parseInt(stars, 10), repo])
       if (!richRepos[parentId]) {
         richRepos[parentId] = { stars: 0, children: [] }
       }
       if (isParent) {
         richRepos[parentId].stars = stars
+        richRepos[parentId].branchMinus = branchData.minus
+        richRepos[parentId].branchPlus = branchData.plus
         richRepos[parentId].parent = repo
       } else {
         richRepos[parentId].children.push([stars, repo])
