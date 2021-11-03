@@ -80,7 +80,7 @@ const checkSort = () => {
 
 setInterval(checkSort, 500)
 
-const processRepo = (repo) => {
+const processRepo = (parent, repo) => {
   const aNode = repo.querySelectorAll('a')[2]
   const url = aNode.href
   fetch(url)
@@ -125,21 +125,21 @@ const renderForkInfo = () => {
   if (!isGithubNetworkPage()) {
     return
   }
-  let lastNestLevel = 1
   let repoFamily = []
+  const repoFamilys = []
   repos.forEach((repo) => {
     const nestLevel = repo.querySelectorAll('svg').length
-    if (nestLevel > lastNestLevel) {
-
+    repoFamily.push(repo)
+    if (nestLevel === 1) {
+      repoFamilys.push(repoFamily)
+      repoFamily = []
     }
-    processRepo(repo)
+  })
+  repoFamilys.forEach((family) => {
+    family.forEach((repo) => {
+      processRepo(family[0], repo)
+    })
   })
 }
-
-document.addEventListener('keyup', (e) => {
-  if (e.key === 'u') {
-    sortRepos()
-  }
-})
 
 renderForkInfo()
