@@ -37,7 +37,7 @@ const getBranchHtml = (branch) => {
   }
   const behindAhead = branch.match(/^This branch is (\d+) commits? ahead, (\d+) commits? behind/)
   if (behindAhead) {
-    return `<span style="color: red">-${behindAhead[1]}</span> <span style="color: green">+${behindAhead[2]}</span>`
+    return `<span style="color: green">+${behindAhead[1]}</span> <span style="color: red">-${behindAhead[2]}</span>`
   }
   return ''
 }
@@ -126,6 +126,7 @@ const renderForkInfo = () => {
     return
   }
   let lastNestLevel = 1
+  let repoFamily = []
   repos.forEach((repo) => {
     const nestLevel = repo.querySelectorAll('svg').length
     if (nestLevel > lastNestLevel) {
