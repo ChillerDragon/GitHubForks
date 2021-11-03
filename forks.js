@@ -178,6 +178,7 @@ const processRepo = (parentId, repo, isParent, familySize) => {
       }
       numFetched++
     })
+    .catch(() => numFetched++) // make sure we still sort when a HTTP request failed
 }
 
 const renderForkInfo = () => {
