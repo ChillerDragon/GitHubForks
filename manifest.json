@@ -1,12 +1,12 @@
 {
-  "name": "GitHub",
+  "name": "GitHub forks",
   "version": "1.0",
   "manifest_version": 2,
-  "description": "GitHub addons",
+  "description": "Extend GitHub's network tab with more detail about the forks. And sort by importance.",
   "icons": {
     "16": "images/icon16.png",
     "48": "images/icon48.png",
-    "128": "images/icon120.png"
+    "120": "images/icon120.png"
   },
   "content_scripts": [
     {
