@@ -45,7 +45,18 @@ const getBranchHtml = (branch) => {
 const network = document.querySelector('.network')
 const repos = isGithubNetworkPage() ? network.querySelectorAll('.repo') : []
 const rootRepo = isGithubNetworkPage() ? network.querySelector('.repo') : []
-const sortedRepos = []
+/*
+  richRepos - hash
+
+  key:
+    A incremented number representing the parent id
+
+  value:
+    A object containing two keys: stars and children
+    The children are a array of the length 2.
+    The first element is the stars and the second the child dom node
+*/
+const richRepos = {}
 let finishSort = false
 let numFetched = 0
 let lastSort = null
@@ -53,6 +64,14 @@ let lastSort = null
 const sortRepos = () => {
   network.innerHTML = ''
   network.insertAdjacentElement('beforeend', rootRepo)
+  const sortedRepos = []
+  Object.entries(richRepos).forEach(([parentId, val]) => {
+    val.children.forEach((child) => {
+      /* should be afterend imo but it does not work */
+      val.parent.insertAdjacentElement('beforeend', child[1])
+    })
+    sortedRepos.push([val.stars, val.parent])
+  })
   sortedRepos.sort((r1, r2) => r2[0] - r1[0])
   sortedRepos.forEach((repo) => {
     network.insertAdjacentElement('beforeend', repo[1])
@@ -69,18 +88,17 @@ const checkSort = () => {
   if (lastSort === numFetched) {
     return
   }
-  sortRepos()
   lastSort = numFetched
   // ignore root repo
   if (lastSort >= repos.length - 1) {
     finishSort = true
-    console.log('finished repo sort')
+    sortRepos()
   }
 }
 
 setInterval(checkSort, 500)
 
-const processRepo = (parent, repo) => {
+const processRepo = (parentId, repo, isParent) => {
   const aNode = repo.querySelectorAll('a')[2]
   const url = aNode.href
   fetch(url)
@@ -92,7 +110,7 @@ const processRepo = (parent, repo) => {
       if (!branchDom) {
         return // the root repo
       }
-      const stars = doc.querySelectorAll('.social-count')[2].innerText
+      const stars = parseInt(doc.querySelectorAll('.social-count')[2].innerText, 10)
       const branch = branchDom.innerText.trim()
       const branchStr = getBranchHtml(branch)
       // github style stars (looks ugly tho)
@@ -115,8 +133,16 @@ const processRepo = (parent, repo) => {
       `
       const starsHtml = `<span>(${stars} ${svgStar})</span>`
       aNode.insertAdjacentHTML('afterend', ` <span>${branchStr} ${starsHtml}</span>`)
-      sortedRepos.push([parseInt(stars, 10), repo])
-      // console.log(`push node ${url} fteched=${numFetched}/${repos.length}`)
+      // sortedRepos.push([parseInt(stars, 10), repo])
+      if (!richRepos[parentId]) {
+        richRepos[parentId] = { stars: 0, children: [] }
+      }
+      if (isParent) {
+        richRepos[parentId].stars = stars
+        richRepos[parentId].parent = repo
+      } else {
+        richRepos[parentId].children.push([stars, repo])
+      }
       numFetched++
     })
 }
@@ -129,15 +155,19 @@ const renderForkInfo = () => {
   const repoFamilys = []
   repos.forEach((repo) => {
     const nestLevel = repo.querySelectorAll('svg').length
-    repoFamily.push(repo)
     if (nestLevel === 1) {
       repoFamilys.push(repoFamily)
       repoFamily = []
     }
+    repoFamily.push(repo)
   })
+  repoFamilys.push(repoFamily)
+  let parentId = 0
   repoFamilys.forEach((family) => {
-    family.forEach((repo) => {
-      processRepo(family[0], repo)
+    parentId++
+    processRepo(parentId, family[0], true)
+    family.slice(1).forEach((repo) => {
+      processRepo(parentId, repo, false)
     })
   })
 }
