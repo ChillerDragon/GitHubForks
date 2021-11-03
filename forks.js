@@ -90,11 +90,15 @@ const sortRepos = () => {
       stars: val.stars,
       branchMinus: val.branchMinus,
       branchPlus: val.branchPlus,
+      forks: val.forks,
       parent: val.parent
     })
   })
   sortedRepos.sort((r1, r2) => {
     if (r2.stars === r1.stars) {
+      if (r2.branchPlus === r1.branchPlus) {
+        return r2.forks - r1.forks
+      }
       return r2.branchPlus - r1.branchPlus
     }
     return r2.stars - r1.stars
@@ -124,7 +128,7 @@ const checkSort = () => {
 
 setInterval(checkSort, 500)
 
-const processRepo = (parentId, repo, isParent) => {
+const processRepo = (parentId, repo, isParent, familySize) => {
   const aNode = repo.querySelectorAll('a')[2]
   const url = aNode.href
   fetch(url)
@@ -168,6 +172,7 @@ const processRepo = (parentId, repo, isParent) => {
         richRepos[parentId].branchMinus = branchData.minus
         richRepos[parentId].branchPlus = branchData.plus
         richRepos[parentId].parent = repo
+        richRepos[parentId].forks = familySize
       } else {
         richRepos[parentId].children.push([stars, repo])
       }
@@ -193,9 +198,9 @@ const renderForkInfo = () => {
   let parentId = 0
   repoFamilys.forEach((family) => {
     parentId++
-    processRepo(parentId, family[0], true)
+    processRepo(parentId, family[0], true, family.length)
     family.slice(1).forEach((repo) => {
-      processRepo(parentId, repo, false)
+      processRepo(parentId, repo, false, family.length)
     })
   })
 }
