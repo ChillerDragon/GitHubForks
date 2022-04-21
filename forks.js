@@ -140,7 +140,7 @@ const processRepo = (parentId, repo, isParent, familySize) => {
       if (!branchDom) {
         return // the root repo
       }
-      const stars = parseInt(doc.querySelectorAll('#repo-stars-counter-star')[0].innerText, 10)
+      const stars = parseInt(doc.querySelectorAll('.js-social-count')[0].innerText, 10)
       const branch = branchDom.innerText.trim()
       const branchData = getBranchHtml(branch)
       // github style stars (looks ugly tho)
