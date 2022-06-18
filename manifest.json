@@ -1,7 +1,7 @@
 {
   "name": "GitHub forks",
   "version": "1.0.1",
-  "manifest_version": 2,
+  "manifest_version": 3,
   "description": "Extend GitHub's network tab with more detail about the forks. And sort by importance.",
   "icons": {
     "16": "images/icon16.png",
