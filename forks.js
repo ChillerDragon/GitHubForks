@@ -59,7 +59,7 @@ const getBranchHtml = (branch) => {
 }
 
 const network = document.querySelector('.network')
-const repos = isGithubNetworkPage() ? network.querySelectorAll('.repo') : []
+const repos = isGithubNetworkPage() ? (network && network.querySelectorAll('.repo')) : []
 const rootRepo = isGithubNetworkPage() ? network.querySelector('.repo') : []
 /*
   richRepos - hash
@@ -133,7 +133,7 @@ const processRepo = (parentId, repo, isParent, familySize) => {
   const url = aNode.href
   fetch(url)
     .then(data => data.text())
-    .then((html) => {
+    .then(async (html) => {
       const parser = new DOMParser()
       const doc = parser.parseFromString(html, 'text/html');
       const branchDom = doc.querySelector('.d-sm-flex.Box > .d-flex')
@@ -143,6 +143,27 @@ const processRepo = (parentId, repo, isParent, familySize) => {
       const stars = parseInt(doc.querySelectorAll('.js-social-count')[0].innerText, 10)
       const branch = branchDom.innerText.trim()
       const branchData = getBranchHtml(branch)
+      const latestCommit = doc.querySelector('include-fragment[aria-label="Loading latest commit"]')
+      let latestCommitMessage = ''
+      // TODO: latestCommit is null a lot
+      if (latestCommit) {
+        const latestCommitUrl = 'https://github.com' + latestCommit.getAttribute("src")
+        const response = await fetch(latestCommitUrl)
+        const commitText = await response.text()
+        const commitParser = new DOMParser()
+        const commitDoc = commitParser.parseFromString(commitText, 'text/html');
+        const commitTease = commitDoc.querySelector('.flex-1.d-flex.flex-items-center.ml-3.min-width-0')
+        if (commitTease) {
+          if (commitTease.innerText) {
+            const commitMessageSplit = commitTease.innerText.split("\n")
+            if (commitMessageSplit.length > 6) {
+              latestCommitMessage = commitTease.innerText.split("\n")[7]
+            } else {
+              console.error(`Expected splitted commit message to be at least 6 but it is ${commitMessageSplit.length}`)
+            }
+          }
+        }
+      }
       // github style stars (looks ugly tho)
       /*
       const starsHtml = `
@@ -162,7 +183,7 @@ const processRepo = (parentId, repo, isParent, familySize) => {
       </svg>
       `
       const starsHtml = `<span>(${stars} ${svgStar})</span>`
-      aNode.insertAdjacentHTML('afterend', ` <span>${branchData.html} ${starsHtml}</span>`)
+      aNode.insertAdjacentHTML('afterend', ` <span>${branchData.html} ${starsHtml} ${latestCommitMessage}</span>`)
       // sortedRepos.push([parseInt(stars, 10), repo])
       if (!richRepos[parentId]) {
         richRepos[parentId] = { stars: 0, children: [] }
