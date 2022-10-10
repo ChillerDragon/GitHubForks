@@ -2,7 +2,7 @@
 
 VERSION=invalid
 
-if [ ! -x "$(command -v jqx)" ]
+if [ ! -x "$(command -v jq)" ]
 then
 	VERSION="$(grep -F '"version": "' manifest.json | head -n 1 | awk -F'"' '{ print $4 }')"
 else
