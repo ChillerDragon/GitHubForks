@@ -1,3 +1,7 @@
+## DEPRECATED BY GITHUB UPDATE
+
+The new official github ui now includes details about forks by default. So this extension is obsolete.
+
 # GitHub forks
 
 Extend GitHub's network tab with more detail about the forks. And sort by importance.
